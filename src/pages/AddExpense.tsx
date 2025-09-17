@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, Receipt, Save } from 'lucide-react';
 import { Expense, EXPENSE_CATEGORIES, ROOM_CATEGORIES } from '@/types';
-import { saveExpense } from '@/lib/storage';
+import { saveExpense } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 
 export default function AddExpense() {
@@ -24,7 +24,7 @@ export default function AddExpense() {
     invoiceUrl: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.date || !formData.amount || !formData.category || !formData.room || !formData.supplier || !formData.description) {
@@ -45,8 +45,7 @@ export default function AddExpense() {
       return;
     }
 
-    const newExpense: Expense = {
-      id: crypto.randomUUID(),
+    const newExpense = {
       date: formData.date,
       amount: parseFloat(formData.amount),
       category: formData.category,
@@ -54,10 +53,18 @@ export default function AddExpense() {
       supplier: formData.supplier,
       description: formData.description,
       invoiceUrl: formData.invoiceUrl || undefined,
-      createdAt: new Date().toISOString(),
     };
 
-    saveExpense(newExpense);
+    try {
+      await saveExpense(newExpense);
+    } catch (error) {
+      toast({
+        title: 'Erreur',
+        description: 'Impossible d\'enregistrer la dépense',
+        variant: 'destructive',
+      });
+      return;
+    }
     
     toast({
       title: 'Dépense ajoutée',

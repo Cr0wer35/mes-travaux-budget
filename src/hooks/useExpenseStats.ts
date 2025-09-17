@@ -1,11 +1,36 @@
-import { useMemo } from 'react';
-import { Expense, Budget, ExpenseStats } from '@/types';
-import { getExpenses, getBudgets } from '@/lib/storage';
+import { useMemo, useEffect, useState } from 'react';
+import { getExpenses, getBudgets } from '@/lib/supabase';
+import type { ExpenseStats, Expense, Budget } from '@/types';
 
-export function useExpenseStats(): ExpenseStats {
+export function useExpenseStats(): ExpenseStats & { loading: boolean; error: string | null } {
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [budgets, setBudgets] = useState<Budget[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const [expensesData, budgetsData] = await Promise.all([
+          getExpenses(),
+          getBudgets()
+        ]);
+        setExpenses(expensesData);
+        setBudgets(budgetsData);
+      } catch (err) {
+        setError('Erreur lors du chargement des données');
+        console.error('Error fetching data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   return useMemo(() => {
-    const expenses = getExpenses();
-    const budgets = getBudgets();
 
     const totalSpent = expenses.reduce((sum, expense) => sum + expense.amount, 0);
     
@@ -58,6 +83,8 @@ export function useExpenseStats(): ExpenseStats {
       budgetUsedPercentage,
       byCategory,
       byRoom,
+      loading,
+      error
     };
-  }, []);
+  }, [expenses, budgets, loading, error]);
 }
