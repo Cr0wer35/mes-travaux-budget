@@ -30,18 +30,9 @@ export interface GlobalBudget {
   updatedAt: string;
 }
 
-export interface RoomAllocation {
-  id: string;
-  globalBudgetId: string;
-  room: string;
-  allocatedAmount: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
 export interface CategoryAllocation {
   id: string;
-  roomAllocationId: string;
+  globalBudgetId: string;
   category: string;
   allocatedAmount: number;
   createdAt: string;
@@ -51,18 +42,8 @@ export interface CategoryAllocation {
 // Interface pour les statistiques hiérarchiques
 export interface BudgetHierarchy {
   globalBudget: GlobalBudget;
-  roomAllocations: RoomAllocation[];
   categoryAllocations: CategoryAllocation[];
   expenses: Expense[];
-}
-
-export interface RoomStats {
-  room: string;
-  allocated: number;
-  spent: number;
-  remaining: number;
-  percentage: number;
-  categories: CategoryStats[];
 }
 
 export interface CategoryStats {
@@ -79,7 +60,7 @@ export interface BudgetStats {
   totalSpent: number;
   totalRemaining: number;
   unallocatedAmount: number;
-  rooms: RoomStats[];
+  categories: CategoryStats[];
 }
 
 export const EXPENSE_CATEGORIES = [

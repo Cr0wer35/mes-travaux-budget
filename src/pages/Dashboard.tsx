@@ -2,12 +2,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { useExpenseStats } from "@/hooks/useExpenseStats";
+import { useHierarchicalBudgetStats } from "@/hooks/useHierarchicalBudgetStats";
 import {
   AlertTriangle,
   BarChart3,
   DollarSign,
-  Home,
   PieChart as PieChartIcon,
   RefreshCw,
   Target,
@@ -42,10 +41,11 @@ const COLORS = [
 ];
 
 export default function Dashboard() {
-  const stats = useExpenseStats();
-  const [selectedView, setSelectedView] = useState<
-    "overview" | "categories" | "rooms"
-  >("overview");
+  const { stats, loading, error, refresh, hasHierarchicalBudget } =
+    useHierarchicalBudgetStats();
+  const [selectedView, setSelectedView] = useState<"overview" | "categories">(
+    "overview"
+  );
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("fr-FR", {
@@ -63,61 +63,7 @@ export default function Dashboard() {
     return formatCurrency(amount);
   };
 
-  // Prepare data for pie chart (categories)
-  const categoryData = Object.entries(stats.byCategory)
-    .filter(([_, data]) => data.spent > 0)
-    .map(([category, data]) => ({
-      name: category,
-      value: data.spent,
-      percentage:
-        stats.totalSpent > 0
-          ? ((data.spent / stats.totalSpent) * 100).toFixed(1)
-          : "0",
-    }))
-    .sort((a, b) => b.value - a.value);
-
-  // Prepare data for bar chart (budget vs actual)
-  const comparisonData = Object.entries(stats.byCategory)
-    .filter(([_, data]) => data.budget > 0 || data.spent > 0)
-    .map(([category, data]) => ({
-      category:
-        category.length > 8 ? category.substring(0, 8) + "..." : category,
-      fullCategory: category,
-      budget: data.budget,
-      spent: data.spent,
-      remaining: Math.max(0, data.budget - data.spent),
-      overBudget: Math.max(0, data.spent - data.budget),
-    }))
-    .sort((a, b) => b.spent - a.spent);
-
-  // Room data
-  const roomData = Object.entries(stats.byRoom)
-    .filter(([_, data]) => data.spent > 0)
-    .map(([room, data]) => ({
-      name: room,
-      value: data.spent,
-      budget: data.budget,
-      percentage:
-        data.budget > 0 ? ((data.spent / data.budget) * 100).toFixed(1) : "0",
-    }))
-    .sort((a, b) => b.value - a.value);
-
-  const getBudgetStatus = () => {
-    if (stats.budgetUsedPercentage > 100)
-      return {
-        variant: "destructive",
-        icon: AlertTriangle,
-        text: "Dépassement",
-      };
-    if (stats.budgetUsedPercentage > 80)
-      return { variant: "warning", icon: TrendingUp, text: "Attention" };
-    return { variant: "success", icon: Target, text: "Sur la bonne voie" };
-  };
-
-  const budgetStatus = getBudgetStatus();
-  const StatusIcon = budgetStatus.icon;
-
-  if (stats.loading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center space-y-4">
@@ -127,6 +73,79 @@ export default function Dashboard() {
       </div>
     );
   }
+
+  if (!hasHierarchicalBudget || !stats) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center space-y-4 max-w-md p-8 bg-white rounded-lg shadow-sm border">
+          <Target className="h-12 w-12 text-primary mx-auto" />
+          <h2 className="text-2xl font-bold">Aucun budget défini</h2>
+          <p className="text-muted-foreground">
+            Pour commencer, vous devez définir un budget global pour vos
+            travaux. Cela vous permettra de suivre vos dépenses et de rester sur
+            la bonne voie.
+          </p>
+          <Button
+            onClick={() => (window.location.href = "/hierarchical-budgets")}
+          >
+            Définir mon budget
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Prepare data for pie chart (categories)
+  const categoryData = stats.categories
+    .filter((data) => data.spent > 0)
+    .map((data) => ({
+      name: data.category,
+      value: data.spent,
+      percentage:
+        stats.totalSpent > 0
+          ? ((data.spent / stats.totalSpent) * 100).toFixed(1)
+          : "0",
+    }))
+    .sort((a, b) => b.value - a.value);
+
+  // Prepare data for bar chart (budget vs actual)
+  const comparisonData = stats.categories
+    .filter((data) => data.allocated > 0 || data.spent > 0)
+    .map((data) => ({
+      category:
+        data.category.length > 8
+          ? data.category.substring(0, 8) + "..."
+          : data.category,
+      fullCategory: data.category,
+      budget: data.allocated,
+      spent: data.spent,
+      remaining: Math.max(0, data.allocated - data.spent),
+      overBudget: Math.max(0, data.spent - data.allocated),
+    }))
+    .sort((a, b) => b.spent - a.spent);
+
+  const getBudgetStatus = () => {
+    const percentage =
+      stats.globalBudget.totalAmount > 0
+        ? (stats.totalSpent / stats.globalBudget.totalAmount) * 100
+        : 0;
+    if (percentage > 100)
+      return {
+        variant: "destructive",
+        icon: AlertTriangle,
+        text: "Dépassement",
+      };
+    if (percentage > 80)
+      return { variant: "warning", icon: TrendingUp, text: "Attention" };
+    return { variant: "success", icon: Target, text: "Sur la bonne voie" };
+  };
+
+  const budgetStatus = getBudgetStatus();
+  const StatusIcon = budgetStatus.icon;
+  const budgetUsedPercentage =
+    stats.globalBudget.totalAmount > 0
+      ? (stats.totalSpent / stats.globalBudget.totalAmount) * 100
+      : 0;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -146,7 +165,7 @@ export default function Dashboard() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={stats.refresh}
+                onClick={refresh}
                 className="flex items-center space-x-2"
               >
                 <RefreshCw className="h-4 w-4" />
@@ -164,7 +183,6 @@ export default function Dashboard() {
             {[
               { key: "overview", label: "Vue d'ensemble", icon: BarChart3 },
               { key: "categories", label: "Catégories", icon: PieChartIcon },
-              { key: "rooms", label: "Pièces", icon: Home },
             ].map(({ key, label, icon: Icon }) => (
               <Button
                 key={key}
@@ -209,7 +227,7 @@ export default function Dashboard() {
                     Budget
                   </p>
                   <p className="text-lg sm:text-2xl font-bold text-gray-900">
-                    {formatCompactCurrency(stats.totalBudget)}
+                    {formatCompactCurrency(stats.globalBudget.totalAmount)}
                   </p>
                 </div>
                 <div className="p-2 bg-green-100 rounded-lg">
@@ -227,15 +245,15 @@ export default function Dashboard() {
                     Restant
                   </p>
                   <p className="text-lg sm:text-2xl font-bold text-gray-900">
-                    {formatCompactCurrency(stats.remainingBudget)}
+                    {formatCompactCurrency(stats.totalRemaining)}
                   </p>
                 </div>
                 <div
                   className={`p-2 rounded-lg ${
-                    stats.remainingBudget >= 0 ? "bg-green-100" : "bg-red-100"
+                    stats.totalRemaining >= 0 ? "bg-green-100" : "bg-red-100"
                   }`}
                 >
-                  {stats.remainingBudget >= 0 ? (
+                  {stats.totalRemaining >= 0 ? (
                     <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
                   ) : (
                     <TrendingDown className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" />
@@ -253,7 +271,7 @@ export default function Dashboard() {
                     Utilisation
                   </p>
                   <p className="text-lg sm:text-2xl font-bold text-gray-900">
-                    {stats.budgetUsedPercentage.toFixed(0)}%
+                    {budgetUsedPercentage.toFixed(0)}%
                   </p>
                 </div>
                 <div
@@ -288,7 +306,7 @@ export default function Dashboard() {
                 <h3 className="text-lg font-semibold">Progression du Budget</h3>
                 <p className="text-sm text-muted-foreground">
                   {formatCurrency(stats.totalSpent)} sur{" "}
-                  {formatCurrency(stats.totalBudget)}
+                  {formatCurrency(stats.globalBudget.totalAmount)}
                 </p>
               </div>
               <Badge
@@ -300,12 +318,12 @@ export default function Dashboard() {
               </Badge>
             </div>
             <Progress
-              value={Math.min(stats.budgetUsedPercentage, 100)}
+              value={Math.min(budgetUsedPercentage, 100)}
               className="h-3"
             />
             <div className="flex justify-between text-xs text-muted-foreground mt-2">
               <span>0%</span>
-              <span>{stats.budgetUsedPercentage.toFixed(1)}%</span>
+              <span>{budgetUsedPercentage.toFixed(1)}%</span>
               <span>100%</span>
             </div>
           </CardContent>
@@ -493,85 +511,16 @@ export default function Dashboard() {
           </div>
         )}
 
-        {selectedView === "rooms" && (
-          <div className="space-y-6">
-            {/* Room Analysis */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {roomData.map((room, index) => {
-                const usagePercentage =
-                  room.budget > 0 ? (room.value / room.budget) * 100 : 0;
-                const isOverBudget =
-                  room.value > room.budget && room.budget > 0;
-
-                return (
-                  <Card key={room.name} className="relative overflow-hidden">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center space-x-2">
-                          <Home className="h-5 w-5 text-primary" />
-                          <h3 className="font-semibold">{room.name}</h3>
-                        </div>
-                        {isOverBudget && (
-                          <Badge variant="destructive" className="text-xs">
-                            <AlertTriangle className="h-3 w-3 mr-1" />
-                            Dépassé
-                          </Badge>
-                        )}
-                      </div>
-
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Dépensé</span>
-                          <span className="font-medium">
-                            {formatCurrency(room.value)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Budget</span>
-                          <span className="font-medium">
-                            {formatCurrency(room.budget)}
-                          </span>
-                        </div>
-
-                        {room.budget > 0 && (
-                          <>
-                            <Progress
-                              value={Math.min(usagePercentage, 100)}
-                              className="h-2"
-                            />
-                            <div className="flex justify-between text-xs text-muted-foreground">
-                              <span>{usagePercentage.toFixed(1)}%</span>
-                              <span>
-                                {room.value <= room.budget
-                                  ? `${formatCurrency(
-                                      room.budget - room.value
-                                    )} restant`
-                                  : `+${formatCurrency(
-                                      room.value - room.budget
-                                    )}`}
-                              </span>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
         {/* Error State */}
-        {stats.error && (
+        {error && (
           <Card className="border-destructive">
             <CardContent className="p-6 text-center">
               <AlertTriangle className="h-12 w-12 text-destructive mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-destructive mb-2">
                 Erreur de chargement
               </h3>
-              <p className="text-muted-foreground mb-4">{stats.error}</p>
-              <Button onClick={stats.refresh} variant="outline">
+              <p className="text-muted-foreground mb-4">{error}</p>
+              <Button onClick={refresh} variant="outline">
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Réessayer
               </Button>

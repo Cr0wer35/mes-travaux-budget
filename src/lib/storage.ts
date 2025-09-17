@@ -6,7 +6,6 @@ import {
   CategoryAllocation,
   Expense,
   GlobalBudget,
-  RoomAllocation
 } from '@/types';
 
 import * as supabaseService from './supabase';
@@ -50,26 +49,9 @@ export const deleteGlobalBudget = (id: string): Promise<void> => {
   return supabaseService.deleteGlobalBudget(id);
 };
 
-// Room Allocations
-export const getRoomAllocations = (globalBudgetId?: string): Promise<RoomAllocation[]> => {
-  return supabaseService.getRoomAllocations(globalBudgetId);
-};
-
-export const saveRoomAllocation = (allocation: RoomAllocation): Promise<void> => {
-  if (allocation.id) {
-    return supabaseService.updateRoomAllocation(allocation.id, allocation);
-  } else {
-    return supabaseService.saveRoomAllocation(allocation).then(() => { });
-  }
-};
-
-export const deleteRoomAllocation = (id: string): Promise<void> => {
-  return supabaseService.deleteRoomAllocation(id);
-};
-
 // Category Allocations
-export const getCategoryAllocations = (roomAllocationId?: string): Promise<CategoryAllocation[]> => {
-  return supabaseService.getCategoryAllocations(roomAllocationId);
+export const getCategoryAllocations = (globalBudgetId?: string): Promise<CategoryAllocation[]> => {
+  return supabaseService.getCategoryAllocations(globalBudgetId);
 };
 
 export const saveCategoryAllocation = (allocation: CategoryAllocation): Promise<void> => {

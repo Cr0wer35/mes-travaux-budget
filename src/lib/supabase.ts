@@ -1,13 +1,10 @@
 import { supabase } from '@/integrations/supabase/client';
 import type {
-  Budget,
   BudgetStats,
   CategoryAllocation,
   CategoryStats,
   Expense,
-  GlobalBudget,
-  RoomAllocation,
-  RoomStats
+  GlobalBudget
 } from '@/types';
 
 // ===== EXPENSES =====
@@ -103,91 +100,6 @@ export async function deleteExpense(id: string): Promise<void> {
   }
 }
 
-// ===== LEGACY BUDGETS =====
-
-export async function getBudgets(): Promise<Budget[]> {
-  const { data, error } = await supabase
-    .from('budgets')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    console.error('Error fetching budgets:', error);
-    throw new Error(`Erreur lors de la récupération des budgets: ${error.message}`);
-  }
-
-  return data.map(budget => ({
-    id: budget.id,
-    type: budget.type as 'global' | 'category' | 'room',
-    name: budget.name,
-    amount: budget.amount,
-    category: budget.category || undefined,
-    room: budget.room || undefined,
-    createdAt: budget.created_at
-  }));
-}
-
-export async function saveBudget(budget: Omit<Budget, 'id' | 'createdAt'>): Promise<Budget> {
-  const { data, error } = await supabase
-    .from('budgets')
-    .insert({
-      type: budget.type,
-      name: budget.name,
-      amount: budget.amount,
-      category: budget.category || null,
-      room: budget.room || null
-    })
-    .select()
-    .single();
-
-  if (error) {
-    console.error('Error saving budget:', error);
-    throw new Error(`Erreur lors de la sauvegarde du budget: ${error.message}`);
-  }
-
-  return {
-    id: data.id,
-    type: data.type as 'global' | 'category' | 'room',
-    name: data.name,
-    amount: data.amount,
-    category: data.category || undefined,
-    room: data.room || undefined,
-    createdAt: data.created_at
-  };
-}
-
-export async function updateBudget(id: string, budget: Partial<Budget>): Promise<void> {
-  const updateData: any = {};
-
-  if (budget.type) updateData.type = budget.type;
-  if (budget.name) updateData.name = budget.name;
-  if (budget.amount !== undefined) updateData.amount = budget.amount;
-  if (budget.category !== undefined) updateData.category = budget.category;
-  if (budget.room !== undefined) updateData.room = budget.room;
-
-  const { error } = await supabase
-    .from('budgets')
-    .update(updateData)
-    .eq('id', id);
-
-  if (error) {
-    console.error('Error updating budget:', error);
-    throw new Error(`Erreur lors de la mise à jour du budget: ${error.message}`);
-  }
-}
-
-export async function deleteBudget(id: string): Promise<void> {
-  const { error } = await supabase
-    .from('budgets')
-    .delete()
-    .eq('id', id);
-
-  if (error) {
-    console.error('Error deleting budget:', error);
-    throw new Error(`Erreur lors de la suppression du budget: ${error.message}`);
-  }
-}
-
 // ===== HIERARCHICAL BUDGET SYSTEM =====
 
 // Global Budgets
@@ -253,7 +165,6 @@ export async function updateGlobalBudget(id: string, budget: Partial<GlobalBudge
 }
 
 export async function deleteGlobalBudget(id: string): Promise<void> {
-  // Les allocations seront supprimées automatiquement grâce à ON DELETE CASCADE
   const { error } = await supabase
     .from('global_budgets')
     .delete()
@@ -265,99 +176,15 @@ export async function deleteGlobalBudget(id: string): Promise<void> {
   }
 }
 
-// Room Allocations
-export async function getRoomAllocations(globalBudgetId?: string): Promise<RoomAllocation[]> {
-  let query = supabase
-    .from('room_allocations')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  if (globalBudgetId) {
-    query = query.eq('global_budget_id', globalBudgetId);
-  }
-
-  const { data, error } = await query;
-
-  if (error) {
-    console.error('Error fetching room allocations:', error);
-    throw new Error(`Erreur lors de la récupération des allocations de pièces: ${error.message}`);
-  }
-
-  return data.map(allocation => ({
-    id: allocation.id,
-    globalBudgetId: allocation.global_budget_id,
-    room: allocation.room,
-    allocatedAmount: allocation.allocated_amount,
-    createdAt: allocation.created_at,
-    updatedAt: allocation.updated_at
-  }));
-}
-
-export async function saveRoomAllocation(allocation: Omit<RoomAllocation, 'id' | 'createdAt' | 'updatedAt'>): Promise<RoomAllocation> {
-  const { data, error } = await supabase
-    .from('room_allocations')
-    .insert({
-      global_budget_id: allocation.globalBudgetId,
-      room: allocation.room,
-      allocated_amount: allocation.allocatedAmount
-    })
-    .select()
-    .single();
-
-  if (error) {
-    console.error('Error saving room allocation:', error);
-    throw new Error(`Erreur lors de la sauvegarde de l'allocation de pièce: ${error.message}`);
-  }
-
-  return {
-    id: data.id,
-    globalBudgetId: data.global_budget_id,
-    room: data.room,
-    allocatedAmount: data.allocated_amount,
-    createdAt: data.created_at,
-    updatedAt: data.updated_at
-  };
-}
-
-export async function updateRoomAllocation(id: string, allocation: Partial<RoomAllocation>): Promise<void> {
-  const updateData: any = {};
-
-  if (allocation.room) updateData.room = allocation.room;
-  if (allocation.allocatedAmount !== undefined) updateData.allocated_amount = allocation.allocatedAmount;
-
-  const { error } = await supabase
-    .from('room_allocations')
-    .update(updateData)
-    .eq('id', id);
-
-  if (error) {
-    console.error('Error updating room allocation:', error);
-    throw new Error(`Erreur lors de la mise à jour de l'allocation de pièce: ${error.message}`);
-  }
-}
-
-export async function deleteRoomAllocation(id: string): Promise<void> {
-  // Les allocations de catégories seront supprimées automatiquement grâce à ON DELETE CASCADE
-  const { error } = await supabase
-    .from('room_allocations')
-    .delete()
-    .eq('id', id);
-
-  if (error) {
-    console.error('Error deleting room allocation:', error);
-    throw new Error(`Erreur lors de la suppression de l'allocation de pièce: ${error.message}`);
-  }
-}
-
 // Category Allocations
-export async function getCategoryAllocations(roomAllocationId?: string): Promise<CategoryAllocation[]> {
+export async function getCategoryAllocations(globalBudgetId?: string): Promise<CategoryAllocation[]> {
   let query = supabase
     .from('category_allocations')
     .select('*')
     .order('created_at', { ascending: false });
 
-  if (roomAllocationId) {
-    query = query.eq('room_allocation_id', roomAllocationId);
+  if (globalBudgetId) {
+    query = query.eq('global_budget_id', globalBudgetId);
   }
 
   const { data, error } = await query;
@@ -369,7 +196,7 @@ export async function getCategoryAllocations(roomAllocationId?: string): Promise
 
   return data.map(allocation => ({
     id: allocation.id,
-    roomAllocationId: allocation.room_allocation_id,
+    globalBudgetId: allocation.global_budget_id,
     category: allocation.category,
     allocatedAmount: allocation.allocated_amount,
     createdAt: allocation.created_at,
@@ -381,7 +208,7 @@ export async function saveCategoryAllocation(allocation: Omit<CategoryAllocation
   const { data, error } = await supabase
     .from('category_allocations')
     .insert({
-      room_allocation_id: allocation.roomAllocationId,
+      global_budget_id: allocation.globalBudgetId,
       category: allocation.category,
       allocated_amount: allocation.allocatedAmount
     })
@@ -395,7 +222,7 @@ export async function saveCategoryAllocation(allocation: Omit<CategoryAllocation
 
   return {
     id: data.id,
-    roomAllocationId: data.room_allocation_id,
+    globalBudgetId: data.global_budget_id,
     category: data.category,
     allocatedAmount: data.allocated_amount,
     createdAt: data.created_at,
@@ -436,7 +263,7 @@ export async function deleteCategoryAllocation(id: string): Promise<void> {
 
 export async function calculateBudgetStats(globalBudgetId: string): Promise<BudgetStats | null> {
   try {
-    // Récupérer le budget global
+    // 1. Récupérer le budget global
     const { data: globalBudgetData, error: globalBudgetError } = await supabase
       .from('global_budgets')
       .select('*')
@@ -456,71 +283,52 @@ export async function calculateBudgetStats(globalBudgetId: string): Promise<Budg
       updatedAt: globalBudgetData.updated_at
     };
 
-    // Récupérer toutes les allocations de pièces pour ce budget
-    const roomAllocations = await getRoomAllocations(globalBudgetId);
+    // 2. Récupérer toutes les allocations de catégories pour ce budget
+    const categoryAllocations = await getCategoryAllocations(globalBudgetId);
 
-    // Récupérer toutes les allocations de catégories
-    const categoryAllocations = await getCategoryAllocations();
-
-    // Récupérer toutes les dépenses
+    // 3. Récupérer toutes les dépenses
     const expenses = await getExpenses();
 
-    // Calculer les statistiques par pièce
-    const rooms: RoomStats[] = roomAllocations.map(roomAllocation => {
-      const roomCategories = categoryAllocations.filter(c => c.roomAllocationId === roomAllocation.id);
-      const roomExpenses = expenses.filter(e => e.room === roomAllocation.room);
-
-      const categories: CategoryStats[] = roomCategories.map(categoryAllocation => {
-        const categoryExpenses = roomExpenses.filter(e => e.category === categoryAllocation.category);
-        const spent = categoryExpenses.reduce((sum, e) => sum + e.amount, 0);
-
-        return {
-          category: categoryAllocation.category,
-          allocated: categoryAllocation.allocatedAmount,
-          spent,
-          remaining: categoryAllocation.allocatedAmount - spent,
-          percentage: categoryAllocation.allocatedAmount > 0 ? (spent / categoryAllocation.allocatedAmount) * 100 : 0
-        };
-      });
-
-      // Ajouter les dépenses sans allocation de catégorie
-      const allocatedCategories = roomCategories.map(c => c.category);
-      const unallocatedExpenses = roomExpenses.filter(e => !allocatedCategories.includes(e.category));
-
-      if (unallocatedExpenses.length > 0) {
-        const unallocatedByCategory = unallocatedExpenses.reduce((acc, expense) => {
-          if (!acc[expense.category]) {
-            acc[expense.category] = 0;
-          }
-          acc[expense.category] += expense.amount;
-          return acc;
-        }, {} as Record<string, number>);
-
-        Object.entries(unallocatedByCategory).forEach(([category, spent]) => {
-          categories.push({
-            category,
-            allocated: 0,
-            spent,
-            remaining: -spent,
-            percentage: 0
-          });
-        });
-      }
-
-      const totalSpent = roomExpenses.reduce((sum, e) => sum + e.amount, 0);
+    // 4. Calculer les statistiques par catégorie
+    const categories: CategoryStats[] = categoryAllocations.map(categoryAllocation => {
+      const categoryExpenses = expenses.filter(e => e.category === categoryAllocation.category);
+      const spent = categoryExpenses.reduce((sum, e) => sum + parseFloat(e.amount as any), 0);
 
       return {
-        room: roomAllocation.room,
-        allocated: roomAllocation.allocatedAmount,
-        spent: totalSpent,
-        remaining: roomAllocation.allocatedAmount - totalSpent,
-        percentage: roomAllocation.allocatedAmount > 0 ? (totalSpent / roomAllocation.allocatedAmount) * 100 : 0,
-        categories
+        category: categoryAllocation.category,
+        allocated: categoryAllocation.allocatedAmount,
+        spent,
+        remaining: categoryAllocation.allocatedAmount - spent,
+        percentage: categoryAllocation.allocatedAmount > 0 ? (spent / categoryAllocation.allocatedAmount) * 100 : 0
       };
     });
 
-    const totalAllocated = roomAllocations.reduce((sum, r) => sum + r.allocatedAmount, 0);
-    const totalSpent = expenses.reduce((sum, e) => sum + e.amount, 0);
+    // Ajouter les dépenses sans allocation de catégorie
+    const allocatedCategories = categoryAllocations.map(c => c.category);
+    const unallocatedExpenses = expenses.filter(e => !allocatedCategories.includes(e.category));
+
+    if (unallocatedExpenses.length > 0) {
+      const unallocatedByCategory = unallocatedExpenses.reduce((acc, expense) => {
+        if (!acc[expense.category]) {
+          acc[expense.category] = 0;
+        }
+        acc[expense.category] += parseFloat(expense.amount as any);
+        return acc;
+      }, {} as Record<string, number>);
+
+      Object.entries(unallocatedByCategory).forEach(([category, spent]) => {
+        categories.push({
+          category,
+          allocated: 0,
+          spent,
+          remaining: -spent,
+          percentage: 0
+        });
+      });
+    }
+
+    const totalAllocated = categoryAllocations.reduce((sum, r) => sum + r.allocatedAmount, 0);
+    const totalSpent = expenses.reduce((sum, e) => sum + parseFloat(e.amount as any), 0);
 
     return {
       globalBudget,
@@ -528,7 +336,7 @@ export async function calculateBudgetStats(globalBudgetId: string): Promise<Budg
       totalSpent,
       totalRemaining: globalBudget.totalAmount - totalSpent,
       unallocatedAmount: globalBudget.totalAmount - totalAllocated,
-      rooms
+      categories
     };
 
   } catch (error) {
