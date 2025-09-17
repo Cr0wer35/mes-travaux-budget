@@ -10,6 +10,7 @@ export interface Expense {
   createdAt: string;
 }
 
+// Budget simple pour le système legacy
 export interface Budget {
   id: string;
   type: 'global' | 'category' | 'room';
@@ -20,13 +21,65 @@ export interface Budget {
   createdAt: string;
 }
 
-export interface ExpenseStats {
+// Système de budget hiérarchique
+export interface GlobalBudget {
+  id: string;
+  name: string;
+  totalAmount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RoomAllocation {
+  id: string;
+  globalBudgetId: string;
+  room: string;
+  allocatedAmount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CategoryAllocation {
+  id: string;
+  roomAllocationId: string;
+  category: string;
+  allocatedAmount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Interface pour les statistiques hiérarchiques
+export interface BudgetHierarchy {
+  globalBudget: GlobalBudget;
+  roomAllocations: RoomAllocation[];
+  categoryAllocations: CategoryAllocation[];
+  expenses: Expense[];
+}
+
+export interface RoomStats {
+  room: string;
+  allocated: number;
+  spent: number;
+  remaining: number;
+  percentage: number;
+  categories: CategoryStats[];
+}
+
+export interface CategoryStats {
+  category: string;
+  allocated: number;
+  spent: number;
+  remaining: number;
+  percentage: number;
+}
+
+export interface BudgetStats {
+  globalBudget: GlobalBudget;
+  totalAllocated: number;
   totalSpent: number;
-  totalBudget: number;
-  remainingBudget: number;
-  budgetUsedPercentage: number;
-  byCategory: Record<string, { spent: number; budget: number }>;
-  byRoom: Record<string, { spent: number; budget: number }>;
+  totalRemaining: number;
+  unallocatedAmount: number;
+  rooms: RoomStats[];
 }
 
 export const EXPENSE_CATEGORIES = [
@@ -65,3 +118,13 @@ export const ROOM_CATEGORIES = [
 
 export type ExpenseCategory = typeof EXPENSE_CATEGORIES[number];
 export type RoomCategory = typeof ROOM_CATEGORIES[number];
+
+// Interface pour les statistiques d'expenses
+export interface ExpenseStats {
+  totalSpent: number;
+  totalBudget: number;
+  remainingBudget: number;
+  budgetUsedPercentage: number;
+  byCategory: Record<string, { spent: number; budget: number }>;
+  byRoom: Record<string, { spent: number; budget: number }>;
+}

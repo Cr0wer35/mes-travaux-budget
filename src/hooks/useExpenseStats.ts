@@ -1,90 +1,177 @@
-import { useMemo, useEffect, useState } from 'react';
-import { getExpenses, getBudgets } from '@/lib/supabase';
-import type { ExpenseStats, Expense, Budget } from '@/types';
+import { getExpenses } from '@/lib/storage';
+import { getBudgets } from '@/lib/supabase';
+import { ExpenseStats } from '@/types';
+import { useEffect, useState } from 'react';
 
-export function useExpenseStats(): ExpenseStats & { loading: boolean; error: string | null } {
-  const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [budgets, setBudgets] = useState<Budget[]>([]);
+export function useExpenseStats() {
+  const [stats, setStats] = useState<ExpenseStats>({
+    totalSpent: 0,
+    totalBudget: 0,
+    remainingBudget: 0,
+    budgetUsedPercentage: 0,
+    byCategory: {},
+    byRoom: {}
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const loadStats = async () => {
       try {
         setLoading(true);
         setError(null);
-        const [expensesData, budgetsData] = await Promise.all([
+
+        const [expenses, budgets] = await Promise.all([
           getExpenses(),
           getBudgets()
         ]);
-        setExpenses(expensesData);
-        setBudgets(budgetsData);
+
+        const totalSpent = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+        const totalBudget = budgets.reduce((sum, budget) => sum + budget.amount, 0);
+        const remainingBudget = totalBudget - totalSpent;
+        const budgetUsedPercentage = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
+
+        // Calculate by category
+        const byCategory: Record<string, { spent: number; budget: number }> = {};
+
+        // Initialize with budgets
+        budgets.forEach(budget => {
+          if (budget.type === 'category' && budget.category) {
+            if (!byCategory[budget.category]) {
+              byCategory[budget.category] = { spent: 0, budget: 0 };
+            }
+            byCategory[budget.category].budget += budget.amount;
+          }
+        });
+
+        // Add expenses
+        expenses.forEach(expense => {
+          if (!byCategory[expense.category]) {
+            byCategory[expense.category] = { spent: 0, budget: 0 };
+          }
+          byCategory[expense.category].spent += expense.amount;
+        });
+
+        // Calculate by room
+        const byRoom: Record<string, { spent: number; budget: number }> = {};
+
+        // Initialize with budgets
+        budgets.forEach(budget => {
+          if (budget.type === 'room' && budget.room) {
+            if (!byRoom[budget.room]) {
+              byRoom[budget.room] = { spent: 0, budget: 0 };
+            }
+            byRoom[budget.room].budget += budget.amount;
+          }
+        });
+
+        // Add expenses
+        expenses.forEach(expense => {
+          if (!byRoom[expense.room]) {
+            byRoom[expense.room] = { spent: 0, budget: 0 };
+          }
+          byRoom[expense.room].spent += expense.amount;
+        });
+
+        setStats({
+          totalSpent,
+          totalBudget,
+          remainingBudget,
+          budgetUsedPercentage,
+          byCategory,
+          byRoom
+        });
+
       } catch (err) {
-        setError('Erreur lors du chargement des données');
-        console.error('Error fetching data:', err);
+        setError(err instanceof Error ? err.message : 'Erreur lors du chargement des statistiques');
+        console.error('Error loading expense stats:', err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
+    loadStats();
   }, []);
 
-  return useMemo(() => {
+  const refresh = () => {
+    const loadStats = async () => {
+      try {
+        setError(null);
 
-    const totalSpent = expenses.reduce((sum, expense) => sum + expense.amount, 0);
-    
-    const globalBudget = budgets.find(b => b.type === 'global');
-    const totalBudget = globalBudget?.amount || 0;
-    
-    const remainingBudget = totalBudget - totalSpent;
-    const budgetUsedPercentage = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
+        const [expenses, budgets] = await Promise.all([
+          getExpenses(),
+          getBudgets()
+        ]);
 
-    // Calculate by category
-    const byCategory: Record<string, { spent: number; budget: number }> = {};
-    expenses.forEach(expense => {
-      if (!byCategory[expense.category]) {
-        byCategory[expense.category] = { spent: 0, budget: 0 };
-      }
-      byCategory[expense.category].spent += expense.amount;
-    });
+        const totalSpent = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+        const totalBudget = budgets.reduce((sum, budget) => sum + budget.amount, 0);
+        const remainingBudget = totalBudget - totalSpent;
+        const budgetUsedPercentage = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
 
-    budgets.filter(b => b.type === 'category').forEach(budget => {
-      if (budget.category && !byCategory[budget.category]) {
-        byCategory[budget.category] = { spent: 0, budget: 0 };
-      }
-      if (budget.category) {
-        byCategory[budget.category].budget = budget.amount;
-      }
-    });
+        // Calculate by category
+        const byCategory: Record<string, { spent: number; budget: number }> = {};
 
-    // Calculate by room
-    const byRoom: Record<string, { spent: number; budget: number }> = {};
-    expenses.forEach(expense => {
-      if (!byRoom[expense.room]) {
-        byRoom[expense.room] = { spent: 0, budget: 0 };
-      }
-      byRoom[expense.room].spent += expense.amount;
-    });
+        // Initialize with budgets
+        budgets.forEach(budget => {
+          if (budget.type === 'category' && budget.category) {
+            if (!byCategory[budget.category]) {
+              byCategory[budget.category] = { spent: 0, budget: 0 };
+            }
+            byCategory[budget.category].budget += budget.amount;
+          }
+        });
 
-    budgets.filter(b => b.type === 'room').forEach(budget => {
-      if (budget.room && !byRoom[budget.room]) {
-        byRoom[budget.room] = { spent: 0, budget: 0 };
-      }
-      if (budget.room) {
-        byRoom[budget.room].budget = budget.amount;
-      }
-    });
+        // Add expenses
+        expenses.forEach(expense => {
+          if (!byCategory[expense.category]) {
+            byCategory[expense.category] = { spent: 0, budget: 0 };
+          }
+          byCategory[expense.category].spent += expense.amount;
+        });
 
-    return {
-      totalSpent,
-      totalBudget,
-      remainingBudget,
-      budgetUsedPercentage,
-      byCategory,
-      byRoom,
-      loading,
-      error
+        // Calculate by room
+        const byRoom: Record<string, { spent: number; budget: number }> = {};
+
+        // Initialize with budgets
+        budgets.forEach(budget => {
+          if (budget.type === 'room' && budget.room) {
+            if (!byRoom[budget.room]) {
+              byRoom[budget.room] = { spent: 0, budget: 0 };
+            }
+            byRoom[budget.room].budget += budget.amount;
+          }
+        });
+
+        // Add expenses
+        expenses.forEach(expense => {
+          if (!byRoom[expense.room]) {
+            byRoom[expense.room] = { spent: 0, budget: 0 };
+          }
+          byRoom[expense.room].spent += expense.amount;
+        });
+
+        setStats({
+          totalSpent,
+          totalBudget,
+          remainingBudget,
+          budgetUsedPercentage,
+          byCategory,
+          byRoom
+        });
+
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Erreur lors du chargement des statistiques');
+        console.error('Error loading expense stats:', err);
+      }
     };
-  }, [expenses, budgets, loading, error]);
+
+    loadStats();
+  };
+
+  return {
+    ...stats,
+    loading,
+    error,
+    refresh
+  };
 }

@@ -1,54 +1,91 @@
-import { Expense, Budget } from '@/types';
+// Ce fichier fait maintenant office de proxy vers les services Supabase
+// Il maintient la compatibilité avec l'ancien code tout en utilisant Supabase
 
-const STORAGE_KEYS = {
-  EXPENSES: 'renovation_expenses',
-  BUDGETS: 'renovation_budgets',
-} as const;
+import {
+  BudgetStats,
+  CategoryAllocation,
+  Expense,
+  GlobalBudget,
+  RoomAllocation
+} from '@/types';
 
-// Expenses
-export const getExpenses = (): Expense[] => {
-  const stored = localStorage.getItem(STORAGE_KEYS.EXPENSES);
-  return stored ? JSON.parse(stored) : [];
+import * as supabaseService from './supabase';
+
+// ===== EXPENSES =====
+
+export const getExpenses = (): Promise<Expense[]> => {
+  return supabaseService.getExpenses();
 };
 
-export const saveExpense = (expense: Expense): void => {
-  const expenses = getExpenses();
-  const existingIndex = expenses.findIndex(e => e.id === expense.id);
-  
-  if (existingIndex >= 0) {
-    expenses[existingIndex] = expense;
+export const saveExpense = (expense: Expense): Promise<void> => {
+  if (expense.id) {
+    // Si l'expense a un ID, c'est une mise à jour
+    return supabaseService.updateExpense(expense.id, expense);
   } else {
-    expenses.push(expense);
+    // Sinon c'est une création
+    return supabaseService.saveExpense(expense).then(() => { });
   }
-  
-  localStorage.setItem(STORAGE_KEYS.EXPENSES, JSON.stringify(expenses));
 };
 
-export const deleteExpense = (id: string): void => {
-  const expenses = getExpenses().filter(e => e.id !== id);
-  localStorage.setItem(STORAGE_KEYS.EXPENSES, JSON.stringify(expenses));
+export const deleteExpense = (id: string): Promise<void> => {
+  return supabaseService.deleteExpense(id);
 };
 
-// Budgets
-export const getBudgets = (): Budget[] => {
-  const stored = localStorage.getItem(STORAGE_KEYS.BUDGETS);
-  return stored ? JSON.parse(stored) : [];
+// ===== HIERARCHICAL BUDGET SYSTEM =====
+
+// Global Budgets
+export const getGlobalBudgets = (): Promise<GlobalBudget[]> => {
+  return supabaseService.getGlobalBudgets();
 };
 
-export const saveBudget = (budget: Budget): void => {
-  const budgets = getBudgets();
-  const existingIndex = budgets.findIndex(b => b.id === budget.id);
-  
-  if (existingIndex >= 0) {
-    budgets[existingIndex] = budget;
+export const saveGlobalBudget = (budget: GlobalBudget): Promise<void> => {
+  if (budget.id) {
+    return supabaseService.updateGlobalBudget(budget.id, budget);
   } else {
-    budgets.push(budget);
+    return supabaseService.saveGlobalBudget(budget).then(() => { });
   }
-  
-  localStorage.setItem(STORAGE_KEYS.BUDGETS, JSON.stringify(budgets));
 };
 
-export const deleteBudget = (id: string): void => {
-  const budgets = getBudgets().filter(b => b.id !== id);
-  localStorage.setItem(STORAGE_KEYS.BUDGETS, JSON.stringify(budgets));
+export const deleteGlobalBudget = (id: string): Promise<void> => {
+  return supabaseService.deleteGlobalBudget(id);
+};
+
+// Room Allocations
+export const getRoomAllocations = (globalBudgetId?: string): Promise<RoomAllocation[]> => {
+  return supabaseService.getRoomAllocations(globalBudgetId);
+};
+
+export const saveRoomAllocation = (allocation: RoomAllocation): Promise<void> => {
+  if (allocation.id) {
+    return supabaseService.updateRoomAllocation(allocation.id, allocation);
+  } else {
+    return supabaseService.saveRoomAllocation(allocation).then(() => { });
+  }
+};
+
+export const deleteRoomAllocation = (id: string): Promise<void> => {
+  return supabaseService.deleteRoomAllocation(id);
+};
+
+// Category Allocations
+export const getCategoryAllocations = (roomAllocationId?: string): Promise<CategoryAllocation[]> => {
+  return supabaseService.getCategoryAllocations(roomAllocationId);
+};
+
+export const saveCategoryAllocation = (allocation: CategoryAllocation): Promise<void> => {
+  if (allocation.id) {
+    return supabaseService.updateCategoryAllocation(allocation.id, allocation);
+  } else {
+    return supabaseService.saveCategoryAllocation(allocation).then(() => { });
+  }
+};
+
+export const deleteCategoryAllocation = (id: string): Promise<void> => {
+  return supabaseService.deleteCategoryAllocation(id);
+};
+
+// ===== BUDGET STATISTICS =====
+
+export const calculateBudgetStats = (globalBudgetId: string): Promise<BudgetStats | null> => {
+  return supabaseService.calculateBudgetStats(globalBudgetId);
 };
