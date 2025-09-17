@@ -2,154 +2,154 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Blue Violet Design System - Mobile First Notion-inspired */
+/* Modern Minimalist Design System - Mobile First */
 
 @layer base {
   :root {
-    /* Base colors */
-    --background: 241 100% 99%;  /* #EFF3FE - Blue Violet 50 */
-    --foreground: 245 61% 20%;   /* #1E1D49 - Blue Violet 950 */
+    /* Base colors - Plus neutres et modernes */
+    --background: 0 0% 100%;        /* Pure white */
+    --foreground: 222 84% 5%;       /* Near black */
 
     --card: 0 0% 100%;
-    --card-foreground: 245 61% 20%;
+    --card-foreground: 222 84% 5%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 245 61% 20%;
+    --popover-foreground: 222 84% 5%;
 
-    /* Blue Violet Primary Scale */
-    --primary: 243 75% 59%;       /* #6A73EA - Blue Violet 500 */
+    /* Modern Primary Scale - Bleu moderne */
+    --primary: 221 83% 53%;         /* #2563EB - Modern blue */
     --primary-foreground: 0 0% 100%;
-    --primary-light: 238 86% 77%; /* #A9BAF8 - Blue Violet 300 */
-    --primary-glow: 240 89% 68%;  /* #8796F2 - Blue Violet 400 */
+    --primary-light: 221 83% 70%;   /* Lighter variant */
+    --primary-glow: 221 83% 60%;    /* Medium variant */
     
-    /* Accent variations */
-    --accent: 241 82% 90%;        /* #CAD6FB - Blue Violet 200 */
-    --accent-foreground: 245 61% 20%;
-    --accent-hover: 241 86% 85%;  /* #E2E9FD - Blue Violet 100 */
+    /* Accent variations - Plus subtiles */
+    --accent: 210 40% 96%;          /* Very light gray-blue */
+    --accent-foreground: 222 84% 5%;
+    --accent-hover: 210 40% 92%;    /* Slightly darker on hover */
 
-    /* Secondary */
-    --secondary: 241 82% 90%;     /* #CAD6FB - Blue Violet 200 */
-    --secondary-foreground: 245 61% 20%;
+    /* Secondary - Gris moderne */
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 84% 5%;
 
-    /* Muted tones */
-    --muted: 241 86% 85%;         /* #E2E9FD - Blue Violet 100 */
-    --muted-foreground: 245 26% 45%;
+    /* Muted tones - Plus neutres */
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
 
-    /* Success (keeping green for positive feedback) */
+    /* Success - Vert moderne */
     --success: 142 76% 36%;
     --success-foreground: 0 0% 98%;
     --success-light: 142 69% 58%;
 
-    /* Warning (soft orange) */
-    --warning: 32 95% 44%;
+    /* Warning - Orange moderne */
+    --warning: 38 92% 50%;
     --warning-foreground: 0 0% 98%;
-    --warning-light: 32 95% 60%;
+    --warning-light: 38 92% 60%;
 
     /* Destructive */
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
-    /* UI Elements */
-    --border: 241 82% 90%;        /* #CAD6FB - Blue Violet 200 */
-    --input: 241 86% 85%;         /* #E2E9FD - Blue Violet 100 */
-    --ring: 243 75% 59%;          /* #6A73EA - Blue Violet 500 */
+    /* UI Elements - Plus subtils */
+    --border: 214 32% 91%;          /* Light gray border */
+    --input: 214 32% 91%;
+    --ring: 221 83% 53%;
 
-    /* Mobile-first radius - larger for better touch */
-    --radius: 1rem;
-    --radius-lg: 1.5rem;
-    --radius-xl: 2rem;
+    /* Mobile-first radius - Plus subtil */
+    --radius: 0.75rem;
+    --radius-lg: 1rem;
+    --radius-xl: 1.5rem;
 
-    /* Modern gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(243 75% 59%), hsl(240 89% 68%));
-    --gradient-accent: linear-gradient(135deg, hsl(241 82% 90%), hsl(241 86% 85%));
+    /* Modern gradients - Plus subtils */
+    --gradient-primary: linear-gradient(135deg, hsl(221 83% 53%), hsl(221 83% 60%));
+    --gradient-accent: linear-gradient(135deg, hsl(210 40% 96%), hsl(210 40% 92%));
     --gradient-success: linear-gradient(135deg, hsl(142 76% 36%), hsl(142 69% 58%));
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(241 100% 99%));
-    --gradient-hero: linear-gradient(135deg, hsl(243 75% 59%) 0%, hsl(240 89% 68%) 50%, hsl(238 86% 77%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(210 40% 98%));
+    --gradient-hero: linear-gradient(135deg, hsl(221 83% 53%) 0%, hsl(221 83% 60%) 50%, hsl(221 83% 70%) 100%);
 
-    /* Elevated shadows for mobile */
-    --shadow-sm: 0 1px 2px 0 hsl(245 61% 20% / 0.05);
-    --shadow-card: 0 4px 6px -1px hsl(245 61% 20% / 0.1), 0 2px 4px -2px hsl(245 61% 20% / 0.1);
-    --shadow-lg: 0 10px 15px -3px hsl(245 61% 20% / 0.1), 0 4px 6px -4px hsl(245 61% 20% / 0.1);
-    --shadow-primary: 0 8px 25px -8px hsl(243 75% 59% / 0.4);
-    --shadow-glow: 0 0 40px hsl(243 75% 59% / 0.3);
+    /* Elevated shadows - Plus subtiles */
+    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.05);
+    --shadow-card: 0 1px 3px 0 hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
+    --shadow-lg: 0 4px 6px -1px hsl(0 0% 0% / 0.1), 0 2px 4px -2px hsl(0 0% 0% / 0.1);
+    --shadow-primary: 0 4px 14px 0 hsl(221 83% 53% / 0.15);
+    --shadow-glow: 0 0 20px hsl(221 83% 53% / 0.15);
 
     /* Smooth transitions */
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-spring: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-spring: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 
     --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 245 61% 20%;
-    --sidebar-primary: 243 75% 59%;
+    --sidebar-foreground: 222 84% 5%;
+    --sidebar-primary: 221 83% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 241 82% 90%;
-    --sidebar-accent-foreground: 245 61% 20%;
-    --sidebar-border: 241 82% 90%;
-    --sidebar-ring: 243 75% 59%;
+    --sidebar-accent: 210 40% 96%;
+    --sidebar-accent-foreground: 222 84% 5%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 221 83% 53%;
   }
 
   .dark {
-    --background: 245 61% 20%;    /* #1E1D49 - Blue Violet 950 */
-    --foreground: 241 100% 99%;   /* #EFF3FE - Blue Violet 50 */
+    --background: 222 84% 5%;       /* Dark background */
+    --foreground: 210 40% 98%;      /* Light text */
 
-    --card: 245 48% 25%;          /* Slightly lighter than 950 */
-    --card-foreground: 241 100% 99%;
+    --card: 222 84% 8%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 245 48% 25%;
-    --popover-foreground: 241 100% 99%;
+    --popover: 222 84% 8%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 243 75% 59%;       /* #6A73EA - Blue Violet 500 */
+    --primary: 221 83% 53%;
     --primary-foreground: 0 0% 100%;
-    --primary-light: 238 86% 77%;
-    --primary-glow: 240 89% 68%;
+    --primary-light: 221 83% 70%;
+    --primary-glow: 221 83% 60%;
 
-    --accent: 245 38% 30%;        /* Darker variant */
-    --accent-foreground: 241 100% 99%;
-    --accent-hover: 245 48% 25%;
+    --accent: 215 28% 17%;
+    --accent-foreground: 210 40% 98%;
+    --accent-hover: 215 28% 20%;
 
-    --secondary: 245 38% 30%;
-    --secondary-foreground: 241 100% 99%;
+    --secondary: 215 28% 17%;
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 245 38% 30%;
-    --muted-foreground: 241 86% 85%;
+    --muted: 215 28% 17%;
+    --muted-foreground: 217 11% 65%;
 
     --success: 142 69% 58%;
-    --success-foreground: 245 61% 20%;
+    --success-foreground: 222 84% 5%;
     --success-light: 142 69% 70%;
 
-    --warning: 32 95% 60%;
-    --warning-foreground: 245 61% 20%;
-    --warning-light: 32 95% 70%;
+    --warning: 38 92% 60%;
+    --warning-foreground: 222 84% 5%;
+    --warning-light: 38 92% 70%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 245 38% 30%;
-    --input: 245 38% 30%;
-    --ring: 243 75% 59%;
+    --border: 215 28% 17%;
+    --input: 215 28% 17%;
+    --ring: 221 83% 53%;
 
-    --gradient-primary: linear-gradient(135deg, hsl(243 75% 59%), hsl(240 89% 68%));
-    --gradient-accent: linear-gradient(135deg, hsl(245 38% 30%), hsl(245 48% 25%));
+    --gradient-primary: linear-gradient(135deg, hsl(221 83% 53%), hsl(221 83% 60%));
+    --gradient-accent: linear-gradient(135deg, hsl(215 28% 17%), hsl(215 28% 20%));
     --gradient-success: linear-gradient(135deg, hsl(142 69% 58%), hsl(142 69% 70%));
-    --gradient-card: linear-gradient(145deg, hsl(245 48% 25%), hsl(245 61% 20%));
-    --gradient-hero: linear-gradient(135deg, hsl(243 75% 59%) 0%, hsl(240 89% 68%) 50%, hsl(238 86% 77%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(222 84% 8%), hsl(222 84% 5%));
+    --gradient-hero: linear-gradient(135deg, hsl(221 83% 53%) 0%, hsl(221 83% 60%) 50%, hsl(221 83% 70%) 100%);
 
     --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.1);
-    --shadow-card: 0 4px 6px -1px hsl(0 0% 0% / 0.2), 0 2px 4px -2px hsl(0 0% 0% / 0.1);
-    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.2), 0 4px 6px -4px hsl(0 0% 0% / 0.1);
-    --shadow-primary: 0 8px 25px -8px hsl(243 75% 59% / 0.5);
-    --shadow-glow: 0 0 40px hsl(243 75% 59% / 0.4);
+    --shadow-card: 0 1px 3px 0 hsl(0 0% 0% / 0.12), 0 1px 2px -1px hsl(0 0% 0% / 0.12);
+    --shadow-lg: 0 4px 6px -1px hsl(0 0% 0% / 0.15), 0 2px 4px -2px hsl(0 0% 0% / 0.15);
+    --shadow-primary: 0 4px 14px 0 hsl(221 83% 53% / 0.25);
+    --shadow-glow: 0 0 20px hsl(221 83% 53% / 0.25);
 
-    --sidebar-background: 245 61% 20%;
-    --sidebar-foreground: 241 100% 99%;
-    --sidebar-primary: 243 75% 59%;
+    --sidebar-background: 222 84% 5%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 221 83% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 245 38% 30%;
-    --sidebar-accent-foreground: 241 100% 99%;
-    --sidebar-border: 245 38% 30%;
-    --sidebar-ring: 243 75% 59%;
+    --sidebar-accent: 215 28% 17%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 215 28% 17%;
+    --sidebar-ring: 221 83% 53%;
   }
 
-  /* Mobile-first Notion-inspired utility classes */
+  /* Modern minimalist utility classes */
   .gradient-primary {
     background: var(--gradient-primary);
   }
@@ -198,13 +198,13 @@
     transition: var(--transition-spring);
   }
 
-  /* Mobile-first responsive utilities */
+  /* Modern responsive utilities */
   .glass-card {
-    @apply bg-card/80 backdrop-blur-xl border border-border/50 shadow-card;
+    @apply bg-card/95 backdrop-blur-sm border border-border shadow-card;
   }
   
   .notion-card {
-    @apply bg-card rounded-xl border border-border/50 shadow-card hover:shadow-lg transition-all duration-300 hover:border-primary/20;
+    @apply bg-card rounded-xl border border-border shadow-card hover:shadow-lg transition-all duration-200 hover:border-primary/30;
   }
   
   .mobile-touch {

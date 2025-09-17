@@ -1,12 +1,12 @@
-import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Target, Receipt, Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
+import { LayoutDashboard, Plus, Receipt, Target } from "lucide-react";
+import { NavLink } from "react-router-dom";
 
 export function Navigation() {
   const navItems = [
-    { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
-    { to: '/budgets', icon: Target, label: 'Budgets' },
-    { to: '/expenses', icon: Receipt, label: 'Dépenses' },
+    { to: "/", icon: LayoutDashboard, label: "Dashboard" },
+    { to: "/budgets", icon: Target, label: "Budgets" },
+    { to: "/expenses", icon: Receipt, label: "Dépenses" },
   ];
 
   return (
@@ -30,8 +30,8 @@ export function Navigation() {
                 className={({ isActive }) =>
                   `flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-smooth ${
                     isActive
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:text-foreground hover:bg-accent"
                   }`
                 }
               >
@@ -39,10 +39,13 @@ export function Navigation() {
                 {item.label}
               </NavLink>
             ))}
-            
+
             {/* Add Expense Button */}
             <NavLink to="/expenses/new">
-              <Button size="sm" className="gradient-primary text-primary-foreground shadow-primary">
+              <Button
+                size="sm"
+                className="gradient-primary text-primary-foreground shadow-primary"
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Ajouter
               </Button>
